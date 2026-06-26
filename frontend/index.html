@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARIA — AI Research Intelligence Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/main.css" />
+</head>
+<body>
+  <!-- Background grid -->
+  <div class="bg-grid"></div>
+  <div class="bg-glow"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-icon">◈</span>
+        <span class="logo-text">ARIA</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle" title="Toggle sidebar">⟨</button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-btn active" data-view="chat" onclick="switchView('chat')">
+        <span class="nav-icon">⌘</span>
+        <span class="nav-label">Research Chat</span>
+      </button>
+      <button class="nav-btn" data-view="history" onclick="switchView('history')">
+        <span class="nav-icon">◎</span>
+        <span class="nav-label">History</span>
+      </button>
+      <button class="nav-btn" data-view="memory" onclick="switchView('memory')">
+        <span class="nav-icon">◈</span>
+        <span class="nav-label">Memory</span>
+      </button>
+      <button class="nav-btn" data-view="vectordb" onclick="switchView('vectordb')">
+        <span class="nav-icon">⬡</span>
+        <span class="nav-label">Vector DB</span>
+      </button>
+      <button class="nav-btn" data-view="agents" onclick="switchView('agents')">
+        <span class="nav-icon">⟡</span>
+        <span class="nav-label">Agents</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="status-row">
+        <span class="status-dot" id="backendStatus"></span>
+        <span class="status-label" id="backendLabel">Connecting...</span>
+      </div>
+      <div class="session-info">
+        Session: <span id="sessionId">—</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main" id="main">
+
+    <!-- ── CHAT VIEW ── -->
+    <section class="view active" id="view-chat">
+      <header class="view-header">
+        <div class="view-title-block">
+          <h1 class="view-title">Research Intelligence</h1>
+          <p class="view-subtitle">Multi-agent · RAG · Memory-augmented</p>
+        </div>
+        <div class="header-controls">
+          <button class="pill-btn" onclick="clearChat()">Clear</button>
+          <button class="pill-btn accent" onclick="openResearchModal()">+ New Research</button>
+        </div>
+      </header>
+
+      <!-- Agent pipeline status bar -->
+      <div class="pipeline-bar" id="pipelineBar" style="display:none">
+        <div class="pipeline-step" id="step-orchestrator">
+          <span class="step-icon">⟡</span><span class="step-name">Orchestrator</span>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" id="step-researcher">
+          <span class="step-icon">◎</span><span class="step-name">Researcher</span>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" id="step-retriever">
+          <span class="step-icon">⬡</span><span class="step-name">Retriever</span>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step" id="step-writer">
+          <span class="step-icon">✦</span><span class="step-name">Writer</span>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="messages" id="messages">
+        <div class="welcome-state" id="welcomeState">
+          <div class="welcome-icon">◈</div>
+          <h2 class="welcome-title">Ready to Research</h2>
+          <p class="welcome-text">Ask anything. ARIA will orchestrate multiple agents to research, retrieve, and synthesise an answer with citations.</p>
+          <div class="suggestion-chips">
+            <button class="chip" onclick="sendSuggestion('What are the latest breakthroughs in quantum computing?')">Quantum computing breakthroughs</button>
+            <button class="chip" onclick="sendSuggestion('Explain how large language models work')">How LLMs work</button>
+            <button class="chip" onclick="sendSuggestion('What is retrieval-augmented generation?')">What is RAG?</button>
+            <button class="chip" onclick="sendSuggestion('Compare transformer vs RNN architectures')">Transformers vs RNNs</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input area -->
+      <div class="input-area">
+        <div class="input-wrapper">
+          <textarea
+            id="chatInput"
+            class="chat-input"
+            placeholder="Ask ARIA to research anything..."
+            rows="1"
+            onkeydown="handleInputKey(event)"
+            oninput="autoResize(this)"
+          ></textarea>
+          <div class="input-actions">
+            <div class="input-options">
+              <label class="toggle-label" title="Search the web for fresh data">
+                <input type="checkbox" id="webSearch" checked />
+                <span class="toggle-track"></span>
+                <span>Web</span>
+              </label>
+              <label class="toggle-label" title="Use vector DB knowledge base">
+                <input type="checkbox" id="useRag" checked />
+                <span class="toggle-track"></span>
+                <span>RAG</span>
+              </label>
+            </div>
+            <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+              <span class="send-icon">↑</span>
+            </button>
+          </div>
+        </div>
+        <p class="input-hint">↵ Send &nbsp;·&nbsp; Shift+↵ New line &nbsp;·&nbsp; ARIA uses multi-agent reasoning</p>
+      </div>
+    </section>
+
+    <!-- ── HISTORY VIEW ── -->
+    <section class="view" id="view-history">
+      <header class="view-header">
+        <div class="view-title-block">
+          <h1 class="view-title">Research History</h1>
+          <p class="view-subtitle">All past research sessions & documents</p>
+        </div>
+        <button class="pill-btn" onclick="loadHistory()">↺ Refresh</button>
+      </header>
+      <div class="history-grid" id="historyGrid">
+        <div class="empty-state">
+          <p>No research sessions yet.</p>
+          <p class="muted">Start a conversation to build your knowledge base.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── MEMORY VIEW ── -->
+    <section class="view" id="view-memory">
+      <header class="view-header">
+        <div class="view-title-block">
+          <h1 class="view-title">Memory System</h1>
+          <p class="view-subtitle">Short-term & long-term knowledge</p>
+        </div>
+        <button class="pill-btn" onclick="loadMemory()">↺ Refresh</button>
+      </header>
+      <div class="memory-layout">
+        <div class="memory-panel">
+          <div class="panel-header">
+            <span class="panel-badge cyan">SHORT-TERM</span>
+            <h3>Conversation Context</h3>
+            <p>Current session messages in context window</p>
+          </div>
+          <div class="memory-list" id="shortTermList">
+            <div class="empty-state"><p class="muted">No active session</p></div>
+          </div>
+        </div>
+        <div class="memory-panel">
+          <div class="panel-header">
+            <span class="panel-badge amber">LONG-TERM</span>
+            <h3>Persistent Memory</h3>
+            <p>Facts, preferences &amp; learned knowledge</p>
+          </div>
+          <div class="memory-list" id="longTermList">
+            <div class="empty-state"><p class="muted">No long-term memories yet</p></div>
+          </div>
+          <button class="panel-btn" onclick="clearLongTermMemory()">Clear long-term memory</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── VECTOR DB VIEW ── -->
+    <section class="view" id="view-vectordb">
+      <header class="view-header">
+        <div class="view-title-block">
+          <h1 class="view-title">Vector Database</h1>
+          <p class="view-subtitle">Embedded documents & semantic search</p>
+        </div>
+        <button class="pill-btn" onclick="loadVectorStats()">↺ Refresh</button>
+      </header>
+      <div class="stats-row" id="vectorStats">
+        <div class="stat-card">
+          <div class="stat-value" id="statDocs">—</div>
+          <div class="stat-label">Documents</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statChunks">—</div>
+          <div class="stat-label">Chunks</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statTopics">—</div>
+          <div class="stat-label">Topics</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statDims">384</div>
+          <div class="stat-label">Dimensions</div>
+        </div>
+      </div>
+
+      <!-- Semantic search test -->
+      <div class="search-section">
+        <h3 class="section-title">Test Semantic Search</h3>
+        <div class="search-row">
+          <input type="text" id="vectorSearchInput" class="search-input" placeholder="Enter a query to search the vector DB..." />
+          <button class="pill-btn accent" onclick="testVectorSearch()">Search</button>
+        </div>
+        <div class="search-results" id="searchResults"></div>
+      </div>
+
+      <div class="docs-section">
+        <h3 class="section-title">Stored Documents</h3>
+        <div class="docs-list" id="docsList">
+          <div class="empty-state"><p class="muted">No documents indexed yet</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── AGENTS VIEW ── -->
+    <section class="view" id="view-agents">
+      <header class="view-header">
+        <div class="view-title-block">
+          <h1 class="view-title">Agent System</h1>
+          <p class="view-subtitle">Live view of agent architecture & logs</p>
+        </div>
+        <button class="pill-btn" onclick="loadAgentLogs()">↺ Refresh</button>
+      </header>
+
+      <div class="agents-grid">
+        <div class="agent-card" id="agent-orchestrator">
+          <div class="agent-header">
+            <span class="agent-icon">⟡</span>
+            <div>
+              <h3>Orchestrator</h3>
+              <p>Plans tasks, delegates to sub-agents</p>
+            </div>
+            <span class="agent-status idle">idle</span>
+          </div>
+          <div class="agent-tools">
+            <span class="tool-tag">LangGraph</span>
+            <span class="tool-tag">claude-sonnet-4</span>
+          </div>
+        </div>
+        <div class="agent-card" id="agent-researcher">
+          <div class="agent-header">
+            <span class="agent-icon">◎</span>
+            <div>
+              <h3>Researcher</h3>
+              <p>Web search, scraping, data gathering</p>
+            </div>
+            <span class="agent-status idle">idle</span>
+          </div>
+          <div class="agent-tools">
+            <span class="tool-tag">Tavily Search</span>
+            <span class="tool-tag">Wikipedia</span>
+            <span class="tool-tag">Web Scraper</span>
+          </div>
+        </div>
+        <div class="agent-card" id="agent-summariser">
+          <div class="agent-header">
+            <span class="agent-icon">◈</span>
+            <div>
+              <h3>Summariser</h3>
+              <p>Chunks docs, generates embeddings</p>
+            </div>
+            <span class="agent-status idle">idle</span>
+          </div>
+          <div class="agent-tools">
+            <span class="tool-tag">MiniLM-L6</span>
+            <span class="tool-tag">Qdrant</span>
+            <span class="tool-tag">Text Splitter</span>
+          </div>
+        </div>
+        <div class="agent-card" id="agent-retriever">
+          <div class="agent-header">
+            <span class="agent-icon">⬡</span>
+            <div>
+              <h3>Retriever</h3>
+              <p>Semantic search over vector DB</p>
+            </div>
+            <span class="agent-status idle">idle</span>
+          </div>
+          <div class="agent-tools">
+            <span class="tool-tag">Cosine Similarity</span>
+            <span class="tool-tag">Top-K Retrieval</span>
+          </div>
+        </div>
+        <div class="agent-card" id="agent-writer">
+          <div class="agent-header">
+            <span class="agent-icon">✦</span>
+            <div>
+              <h3>Writer</h3>
+              <p>Synthesises cited answers</p>
+            </div>
+            <span class="agent-status idle">idle</span>
+          </div>
+          <div class="agent-tools">
+            <span class="tool-tag">claude-sonnet-4</span>
+            <span class="tool-tag">Citation Builder</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="logs-section">
+        <h3 class="section-title">Agent Logs</h3>
+        <div class="logs-box" id="agentLogs">
+          <p class="muted mono">Waiting for agent activity...</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Research Modal -->
+  <div class="modal-overlay" id="researchModal" onclick="closeResearchModal(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>New Research Session</h2>
+        <button class="modal-close" onclick="closeResearchModal()">✕</button>
+      </div>
+      <p class="modal-desc">Trigger a deep research run. ARIA will search the web, index documents into the vector DB, and build long-term memory.</p>
+      <div class="modal-field">
+        <label>Research Topic</label>
+        <input type="text" id="researchTopic" placeholder="e.g. Advances in fusion energy 2024" />
+      </div>
+      <div class="modal-field">
+        <label>Depth</label>
+        <div class="radio-group">
+          <label class="radio-label"><input type="radio" name="depth" value="quick" /> Quick (3 sources)</label>
+          <label class="radio-label"><input type="radio" name="depth" value="standard" checked /> Standard (8 sources)</label>
+          <label class="radio-label"><input type="radio" name="depth" value="deep" /> Deep (15 sources)</label>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="pill-btn" onclick="closeResearchModal()">Cancel</button>
+        <button class="pill-btn accent" onclick="startResearch()">Launch Research ↗</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="src/api.js"></script>
+  <script src="src/app.js"></script>
+</body>
+</html>
