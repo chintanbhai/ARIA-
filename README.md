@@ -42,9 +42,6 @@ cp .env.example .env
 # Edit .env and add your API keys
 ```
 
-Required keys:
-- `ANTHROPIC_API_KEY` — get from https://console.anthropic.com
-- `TAVILY_API_KEY` — get from https://tavily.com (free tier available)
 
 ### 3. Run the backend
 
