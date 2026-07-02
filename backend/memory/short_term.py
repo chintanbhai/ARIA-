@@ -42,7 +42,7 @@ class ShortTermMemory:
             session["messages"] = session["messages"][-self.max_messages:]
 
     def get_messages(self, session_id: str) -> List[Dict[str, str]]:
-        """Return messages in Claude API format (role + content only)."""
+        """Return messages in chat API format (role + content only)."""
         session = self._store.get(session_id, {})
         return [
             {"role": m["role"], "content": m["content"]}

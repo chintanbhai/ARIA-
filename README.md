@@ -16,7 +16,7 @@ User → Orchestrator Agent → [Researcher, Summariser, Retriever, Writer]
 
 | Layer | Technology |
 |-------|-----------|
-| LLM | Anthropic Claude (claude-sonnet-4-20250514) |
+| LLM | Groq (llama-3.3-70b-versatile) |
 | Agent Framework | LangGraph |
 | Embeddings | sentence-transformers (all-MiniLM-L6-v2) |
 | Vector DB | Qdrant (in-memory for dev, persistent for prod) |
@@ -43,7 +43,7 @@ cp .env.example .env
 ```
 
 Required keys:
-- `ANTHROPIC_API_KEY` — get from https://console.anthropic.com
+- `GROQ_API_KEY` — get from https://console.groq.com (free tier available)
 - `TAVILY_API_KEY` — get from https://tavily.com (free tier available)
 
 ### 3. Run the backend
